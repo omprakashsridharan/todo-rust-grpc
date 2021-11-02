@@ -1,3 +1,3 @@
 mod auth;
 
-pub use auth::{AuthService};
+pub use auth::AuthService;

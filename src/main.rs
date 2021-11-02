@@ -1,13 +1,12 @@
 mod service;
 mod service_impl;
 
-use tonic::{transport::Server};
 use crate::service::auth::auth_server::AuthServer;
 use crate::service_impl::AuthService;
-use tracing_subscriber;
 use dotenv::dotenv;
 use std::env;
-
+use tonic::transport::Server;
+use tracing_subscriber;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -17,7 +16,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let port = env::var("PORT").unwrap_or(String::from("50051"));
     // Address
-    let adder = format!("[::1]:{}",port).parse()?;
+    let adder = format!("[::1]:{}", port).parse()?;
 
     // Initiate service defaults
     let auth_service = AuthService::default();
