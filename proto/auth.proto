@@ -1,0 +1,16 @@
+syntax = "proto3";
+package auth;
+
+message SignUpRequest {
+    string username = 1;
+    int32 pin = 2;
+}
+
+message SignUpResponse {
+    string message = 1;
+    bool success = 2;
+}
+
+service Auth {
+    rpc SignUp (SignUpRequest) returns (SignUpResponse);
+}
