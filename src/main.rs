@@ -1,6 +1,8 @@
+mod db;
 mod service;
 mod service_impl;
 
+use crate::db::{get_connection_pool, Manager, Message};
 use crate::service::auth::auth_server::AuthServer;
 use crate::service_impl::AuthService;
 use dotenv::dotenv;
@@ -14,13 +16,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt::init();
     dotenv().ok();
 
+    // Database Manager setup
+    let pool = get_connection_pool().await?;
+    let (db_tx, db_rx) = tokio::sync::mpsc::channel::<Message>(32);
+    tokio::spawn(async move {
+        let mut manager = Manager::new(pool, db_rx);
+        manager.listen().await;
+    });
+
     let port = env::var("PORT").unwrap_or(String::from("50051"));
     // Address
     let adder = format!("[::1]:{}", port).parse()?;
 
     // Initiate service defaults
-    let auth_service = AuthService::default();
-
+    let auth_service = AuthService::new(db_tx.clone());
     Server::builder()
         .add_service(AuthServer::new(auth_service))
         .serve(adder)
