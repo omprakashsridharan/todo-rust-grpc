@@ -1,10 +1,12 @@
 use crate::db::models::User;
 use crate::db::Message;
 use crate::service::auth::auth_server::Auth;
-use crate::service::auth::{SignUpRequest, SignUpResponse};
+use crate::service::auth::{SignInRequest, SignInResponse, SignUpRequest, SignUpResponse};
 use tokio::sync::mpsc::Sender;
+use tokio::sync::oneshot::channel;
 use tonic::{Request, Response, Status};
 use tracing::{error, info};
+
 #[derive(Debug, Clone)]
 pub struct AuthService {
     db_message_sender: Sender<Message>,
@@ -30,7 +32,7 @@ impl Auth for AuthService {
             error!("{}", error_message);
             return Err(Status::invalid_argument(error_message));
         }
-        let (tx, rx) = tokio::sync::oneshot::channel::<Result<User, String>>();
+        let (tx, rx) = channel::<Result<User, String>>();
         match self
             .db_message_sender
             .send(Message::SignUp {
@@ -55,6 +57,41 @@ impl Auth for AuthService {
                 Err(e) => {
                     error!("Error while signing up {:?}", e);
                     Err(Status::aborted(format!("Error while signing up: {}", e)))
+                }
+            },
+            Err(e) => {
+                error!("Error while signing up {:?}", e);
+                Err(Status::aborted("Error while signing up"))
+            }
+        }
+    }
+
+    async fn sign_in(
+        &self,
+        request: Request<SignInRequest>,
+    ) -> Result<Response<SignInResponse>, Status> {
+        let (tx, rx) = channel::<Result<String, String>>();
+        match self
+            .db_message_sender
+            .send(Message::SignIn {
+                req: request.get_ref().clone(),
+                resp: tx,
+            })
+            .await
+        {
+            Ok(_) => {}
+            Err(e) => error!("Failed to send sign in message to DB manager {:?}", e),
+        }
+        match rx.await {
+            Ok(res) => match res {
+                Ok(token) => {
+                    info!("Signed in user: {}", request.get_ref().username);
+                    let reply = SignInResponse { token };
+                    Ok(Response::new(reply))
+                }
+                Err(e) => {
+                    error!("Error while signing in {:?}", e);
+                    Err(Status::unauthenticated(e))
                 }
             },
             Err(e) => {

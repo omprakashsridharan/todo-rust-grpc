@@ -12,6 +12,18 @@ pub struct SignUpResponse {
     #[prost(bool, tag = "2")]
     pub success: bool,
 }
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SignInRequest {
+    #[prost(string, tag = "1")]
+    pub username: ::prost::alloc::string::String,
+    #[prost(int32, tag = "2")]
+    pub pin: i32,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SignInResponse {
+    #[prost(string, tag = "1")]
+    pub token: ::prost::alloc::string::String,
+}
 #[doc = r" Generated client implementations."]
 pub mod auth_client {
     #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
@@ -83,6 +95,20 @@ pub mod auth_client {
             let path = http::uri::PathAndQuery::from_static("/auth.Auth/SignUp");
             self.inner.unary(request.into_request(), path, codec).await
         }
+        pub async fn sign_in(
+            &mut self,
+            request: impl tonic::IntoRequest<super::SignInRequest>,
+        ) -> Result<tonic::Response<super::SignInResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static("/auth.Auth/SignIn");
+            self.inner.unary(request.into_request(), path, codec).await
+        }
     }
 }
 #[doc = r" Generated server implementations."]
@@ -96,6 +122,10 @@ pub mod auth_server {
             &self,
             request: tonic::Request<super::SignUpRequest>,
         ) -> Result<tonic::Response<super::SignUpResponse>, tonic::Status>;
+        async fn sign_in(
+            &self,
+            request: tonic::Request<super::SignInRequest>,
+        ) -> Result<tonic::Response<super::SignInResponse>, tonic::Status>;
     }
     #[derive(Debug)]
     pub struct AuthServer<T: Auth> {
@@ -157,6 +187,37 @@ pub mod auth_server {
                     let fut = async move {
                         let inner = inner.0;
                         let method = SignUpSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec).apply_compression_config(
+                            accept_compression_encodings,
+                            send_compression_encodings,
+                        );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/auth.Auth/SignIn" => {
+                    #[allow(non_camel_case_types)]
+                    struct SignInSvc<T: Auth>(pub Arc<T>);
+                    impl<T: Auth> tonic::server::UnaryService<super::SignInRequest> for SignInSvc<T> {
+                        type Response = super::SignInResponse;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::SignInRequest>,
+                        ) -> Self::Future {
+                            let inner = self.0.clone();
+                            let fut = async move { (*inner).sign_in(request).await };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = SignInSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec).apply_compression_config(
                             accept_compression_encodings,
