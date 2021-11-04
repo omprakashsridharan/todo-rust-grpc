@@ -1,8 +1,10 @@
 mod db;
+mod interceptors;
 mod service;
 mod service_impl;
 
 use crate::db::{get_connection_pool, Manager, Message};
+use crate::interceptors::AuthInterceptor;
 use crate::service::auth::auth_server::AuthServer;
 use crate::service_impl::AuthService;
 use dotenv::dotenv;
@@ -24,14 +26,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         manager.listen().await;
     });
 
+    // Middleware manager
+    let _auth_interceptor = AuthInterceptor::default();
+
     let port = env::var("PORT").unwrap_or(String::from("50051"));
     // Address
     let adder = format!("[::1]:{}", port).parse()?;
 
     // Initiate service defaults
     let auth_service = AuthService::new(db_tx.clone());
+    let auth_service_with_interceptor = AuthServer::new(auth_service);
     Server::builder()
-        .add_service(AuthServer::new(auth_service))
+        .add_service(auth_service_with_interceptor)
         .serve(adder)
         .await?;
     Ok(())

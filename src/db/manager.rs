@@ -57,10 +57,7 @@ impl Manager {
         .await;
 
         match result {
-            Ok(mysql_result) => {
-                info!("Sign in result is {:?}", mysql_result);
-                Ok(generate_jwt(mysql_result.username))
-            }
+            Ok(mysql_result) => Ok(generate_jwt(mysql_result.username)),
             Err(e) => match e {
                 sqlx::Error::Database(db_err) => {
                     error!("Database error {:?}", db_err);
