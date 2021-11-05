@@ -6,7 +6,8 @@ mod service_impl;
 use crate::db::{get_connection_pool, Manager, Message};
 use crate::interceptors::AuthInterceptor;
 use crate::service::auth::auth_server::AuthServer;
-use crate::service_impl::AuthService;
+use crate::service::todo::todo_server::TodoServer;
+use crate::service_impl::{AuthService, TodoService};
 use dotenv::dotenv;
 use std::env;
 use tonic::transport::Server;
@@ -35,9 +36,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Initiate service defaults
     let auth_service = AuthService::new(db_tx.clone());
+    let todo_service = TodoService::new(db_tx.clone());
+
     let auth_service_with_interceptor = AuthServer::new(auth_service);
     Server::builder()
         .add_service(auth_service_with_interceptor)
+        .add_service(TodoServer::new(todo_service))
         .serve(adder)
         .await?;
     Ok(())

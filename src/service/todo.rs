@@ -1,13 +1,14 @@
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct HelloRequest {
+pub struct TodoItem {
+    /// string description = 3;
+    /// string status = 4;
+    /// string created_at = 5;
+    /// string updated_at = 6;
     #[prost(string, tag = "1")]
-    pub name: ::prost::alloc::string::String,
+    pub id: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct HelloReply {
-    #[prost(string, tag = "1")]
-    pub message: ::prost::alloc::string::String,
-}
+pub struct GetTodoRequest {}
 #[doc = r" Generated client implementations."]
 pub mod todo_client {
     #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
@@ -65,10 +66,11 @@ pub mod todo_client {
             self.inner = self.inner.accept_gzip();
             self
         }
-        pub async fn say_hello(
+        pub async fn get_todos(
             &mut self,
-            request: impl tonic::IntoRequest<super::HelloRequest>,
-        ) -> Result<tonic::Response<super::HelloReply>, tonic::Status> {
+            request: impl tonic::IntoRequest<super::GetTodoRequest>,
+        ) -> Result<tonic::Response<tonic::codec::Streaming<super::TodoItem>>, tonic::Status>
+        {
             self.inner.ready().await.map_err(|e| {
                 tonic::Status::new(
                     tonic::Code::Unknown,
@@ -76,8 +78,10 @@ pub mod todo_client {
                 )
             })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/todo.Todo/SayHello");
-            self.inner.unary(request.into_request(), path, codec).await
+            let path = http::uri::PathAndQuery::from_static("/todo.Todo/GetTodos");
+            self.inner
+                .server_streaming(request.into_request(), path, codec)
+                .await
         }
     }
 }
@@ -88,10 +92,15 @@ pub mod todo_server {
     #[doc = "Generated trait containing gRPC methods that should be implemented for use with TodoServer."]
     #[async_trait]
     pub trait Todo: Send + Sync + 'static {
-        async fn say_hello(
+        #[doc = "Server streaming response type for the GetTodos method."]
+        type GetTodosStream: futures_core::Stream<Item = Result<super::TodoItem, tonic::Status>>
+            + Send
+            + Sync
+            + 'static;
+        async fn get_todos(
             &self,
-            request: tonic::Request<super::HelloRequest>,
-        ) -> Result<tonic::Response<super::HelloReply>, tonic::Status>;
+            request: tonic::Request<super::GetTodoRequest>,
+        ) -> Result<tonic::Response<Self::GetTodosStream>, tonic::Status>;
     }
     #[derive(Debug)]
     pub struct TodoServer<T: Todo> {
@@ -132,18 +141,20 @@ pub mod todo_server {
         fn call(&mut self, req: http::Request<B>) -> Self::Future {
             let inner = self.inner.clone();
             match req.uri().path() {
-                "/todo.Todo/SayHello" => {
+                "/todo.Todo/GetTodos" => {
                     #[allow(non_camel_case_types)]
-                    struct SayHelloSvc<T: Todo>(pub Arc<T>);
-                    impl<T: Todo> tonic::server::UnaryService<super::HelloRequest> for SayHelloSvc<T> {
-                        type Response = super::HelloReply;
-                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
+                    struct GetTodosSvc<T: Todo>(pub Arc<T>);
+                    impl<T: Todo> tonic::server::ServerStreamingService<super::GetTodoRequest> for GetTodosSvc<T> {
+                        type Response = super::TodoItem;
+                        type ResponseStream = T::GetTodosStream;
+                        type Future =
+                            BoxFuture<tonic::Response<Self::ResponseStream>, tonic::Status>;
                         fn call(
                             &mut self,
-                            request: tonic::Request<super::HelloRequest>,
+                            request: tonic::Request<super::GetTodoRequest>,
                         ) -> Self::Future {
                             let inner = self.0.clone();
-                            let fut = async move { (*inner).say_hello(request).await };
+                            let fut = async move { (*inner).get_todos(request).await };
                             Box::pin(fut)
                         }
                     }
@@ -152,13 +163,13 @@ pub mod todo_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let inner = inner.0;
-                        let method = SayHelloSvc(inner);
+                        let method = GetTodosSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec).apply_compression_config(
                             accept_compression_encodings,
                             send_compression_encodings,
                         );
-                        let res = grpc.unary(method, req).await;
+                        let res = grpc.server_streaming(method, req).await;
                         Ok(res)
                     };
                     Box::pin(fut)

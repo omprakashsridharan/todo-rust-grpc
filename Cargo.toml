@@ -16,6 +16,9 @@ sqlx = { version = "0.5.9", features = ["mysql","macros","migrate","runtime-toki
 jwt = "0.15.0"
 sha2 = "0.9.8"
 hmac = "0.11.0"
+futures = {version = "0.3", default-features = false, features = ["alloc"]}
+async-stream = "0.3"
+tokio-stream = "0.1.8"
 
 [build-dependencies]
 tonic-build = "0.5"
