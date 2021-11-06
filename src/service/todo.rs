@@ -1,14 +1,20 @@
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct TodoItem {
-    /// string description = 3;
-    /// string status = 4;
-    /// string created_at = 5;
-    /// string updated_at = 6;
-    #[prost(string, tag = "1")]
-    pub id: ::prost::alloc::string::String,
+    #[prost(uint32, tag = "1")]
+    pub id: u32,
+    #[prost(string, tag = "2")]
+    pub description: ::prost::alloc::string::String,
+    #[prost(enumeration = "TodoStatus", tag = "3")]
+    pub status: i32,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetTodoRequest {}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum TodoStatus {
+    Active = 0,
+    Completed = 1,
+}
 #[doc = r" Generated client implementations."]
 pub mod todo_client {
     #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]

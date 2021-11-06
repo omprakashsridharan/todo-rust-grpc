@@ -1,12 +1,15 @@
 syntax = "proto3";
 package todo;
 
+enum TodoStatus {
+    TODO_STATUS_ACTIVE = 0;
+    TODO_STATUS_COMPLETED = 1;
+}
+
 message TodoItem {
-    string id = 1;
-    // string description = 3;
-    // string status = 4;
-    // string created_at = 5;
-    // string updated_at = 6;
+    uint32 id = 1;
+    string description = 2;
+    TodoStatus status = 3;
 }
 
 message GetTodoRequest {

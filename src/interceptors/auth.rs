@@ -19,13 +19,20 @@ impl Interceptor for AuthInterceptor {
                 Ok(full_token) => {
                     let secret = env::var("SECRET").expect("SECRET env missing");
                     let key: Hmac<Sha256> = Hmac::new_from_slice(secret.as_bytes()).unwrap();
-                    let claims: BTreeMap<String, String> =
-                        full_token.verify_with_key(&key).unwrap();
-                    info!("Claims token {:?}", claims);
-                    let username: String = claims["sub"].to_owned();
-                    request.extensions_mut().insert(AuthExtension { username });
-
-                    return Ok(request);
+                    let claims_result: Result<BTreeMap<String, String>, jwt::error::Error> =
+                        full_token.verify_with_key(&key);
+                    match claims_result {
+                        Ok(claims) => {
+                            info!("Claims token {:?}", claims);
+                            let username: String = claims["sub"].to_owned();
+                            request.extensions_mut().insert(AuthExtension { username });
+                            return Ok(request);
+                        }
+                        Err(e) => {
+                            error!("Error while parsing token {:?}", e);
+                            return Err(Status::unauthenticated("No valid auth token"));
+                        }
+                    }
                 }
                 Err(e) => {
                     error!("Error while parsing token {:?}", e);

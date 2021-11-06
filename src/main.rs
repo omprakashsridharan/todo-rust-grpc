@@ -28,7 +28,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
 
     // Middleware manager
-    let _auth_interceptor = AuthInterceptor::default();
+    let auth_interceptor = AuthInterceptor::default();
 
     let port = env::var("PORT").unwrap_or(String::from("50051"));
     // Address
@@ -38,10 +38,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let auth_service = AuthService::new(db_tx.clone());
     let todo_service = TodoService::new(db_tx.clone());
 
-    let auth_service_with_interceptor = AuthServer::new(auth_service);
+    let auth_service = AuthServer::new(auth_service);
+    let todo_service_with_interceptor =
+        TodoServer::with_interceptor(todo_service, auth_interceptor);
+
     Server::builder()
-        .add_service(auth_service_with_interceptor)
-        .add_service(TodoServer::new(todo_service))
+        .add_service(auth_service)
+        .add_service(todo_service_with_interceptor)
         .serve(adder)
         .await?;
     Ok(())
