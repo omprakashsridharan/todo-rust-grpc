@@ -1,14 +1,13 @@
 mod db;
 mod interceptors;
-mod service;
 mod service_impl;
 
 use crate::db::{get_connection_pool, Manager, Message};
 use crate::interceptors::AuthInterceptor;
-use crate::service::auth::auth_server::AuthServer;
-use crate::service::todo::todo_server::TodoServer;
 use crate::service_impl::{AuthService, TodoService};
 use dotenv::dotenv;
+use proto::service::auth::auth_server::AuthServer;
+use proto::service::todo::todo_server::TodoServer;
 use std::env;
 use tonic::transport::Server;
 use tracing_subscriber;

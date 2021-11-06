@@ -1,7 +1,7 @@
 use crate::db::models::User;
 use crate::db::Message;
-use crate::service::auth::auth_server::Auth;
-use crate::service::auth::{SignInRequest, SignInResponse, SignUpRequest, SignUpResponse};
+use proto::service::auth::auth_server::Auth;
+use proto::service::auth::{SignInRequest, SignInResponse, SignUpRequest, SignUpResponse};
 use tokio::sync::mpsc::Sender;
 use tokio::sync::oneshot::channel;
 use tonic::{Request, Response, Status};

@@ -1,10 +1,10 @@
 use crate::db::models::User;
 use crate::db::todo::TodoItemDb;
-use crate::service::auth::{SignInRequest, SignUpRequest};
-use crate::service::todo::TodoItem;
 use futures::TryStreamExt;
 use hmac::{Hmac, NewMac};
 use jwt::SignWithKey;
+use proto::service::auth::{SignInRequest, SignUpRequest};
+use proto::service::todo::TodoItem;
 use sha2::Sha256;
 use sqlx::mysql::MySqlDatabaseError;
 use sqlx::{pool::PoolConnection, MySql, Pool};

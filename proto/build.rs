@@ -1,8 +1,7 @@
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     tonic_build::configure()
-        .build_server(true)
         .build_client(true)
         .out_dir("src/service")
-        .compile(&["proto/todo.proto", "proto/auth.proto"], &["proto"])?;
+        .compile(&["defs/todo.proto", "defs/auth.proto"], &["defs"])?;
     Ok(())
 }

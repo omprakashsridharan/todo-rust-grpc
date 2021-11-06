@@ -1,6 +1,6 @@
+use crate::db::Message;
 use crate::interceptors::AuthExtension;
-use crate::service::todo::{GetTodoRequest, TodoItem};
-use crate::{db::Message, service::todo::todo_server::Todo};
+use proto::service::todo::{todo_server::Todo, GetTodoRequest, TodoItem};
 use tokio::sync::mpsc::{self, Sender};
 use tokio_stream::wrappers::ReceiverStream;
 use tonic::{Request, Response, Status};
