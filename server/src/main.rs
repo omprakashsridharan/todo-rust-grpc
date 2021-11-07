@@ -10,6 +10,7 @@ use proto::service::auth::auth_server::AuthServer;
 use proto::service::todo::todo_server::TodoServer;
 use std::env;
 use tonic::transport::Server;
+use tracing::info;
 use tracing_subscriber;
 
 #[tokio::main]
@@ -29,10 +30,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Middleware manager
     let auth_interceptor = AuthInterceptor::default();
 
-    let port = env::var("PORT").unwrap_or(String::from("50051"));
+    let port = env::var("PORT").unwrap_or(String::from("50050"));
     // Address
-    let adder = format!("[::1]:{}", port).parse()?;
-
+    let adder = format!("0.0.0.0:{}", port).parse()?;
+    info!("Server running on {:?}", adder);
     // Initiate service defaults
     let auth_service = AuthService::new(db_tx.clone());
     let todo_service = TodoService::new(db_tx.clone());
